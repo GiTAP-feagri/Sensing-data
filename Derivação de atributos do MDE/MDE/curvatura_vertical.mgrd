@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SAGA_METADATA>
+  <DATABASE></DATABASE>
+  <SOURCE></SOURCE>
+  <HISTORY saga-version="6.2.0">
+    <TOOL library="ta_morphometry" id="0" name="Slope, Aspect, Curvature">
+      <OPTION type="grid_system" id="PARAMETERS_GRID_SYSTEM" name="Grid system">
+        <CELLSIZE>12.5</CELLSIZE>
+        <XMIN>836810.625</XMIN>
+        <XMAX>838448.125</XMAX>
+        <YMIN>7582892.5</YMIN>
+        <YMAX>7584492.5</YMAX>
+      </OPTION>
+      <OPTION type="choice" id="METHOD" name="Method" index="6">9 parameter 2nd order polynom (Zevenbergen &amp; Thorne 1987)</OPTION>
+      <OPTION type="choice" id="UNIT_SLOPE" name="Slope Units" index="0">radians</OPTION>
+      <OPTION type="choice" id="UNIT_ASPECT" name="Aspect Units" index="0">radians</OPTION>
+      <INPUT type="grid" id="ELEVATION" name="Elevation" system="PARAMETERS_GRID_SYSTEM">
+        <TOOL library="io_gdal" id="0" name="Import Raster">
+          <OPTION type="file" id="FILES" name="Files">../atributos derivados/elevacao.tif</OPTION>
+          <OPTION type="choice" id="MULTIPLE" name="Multiple Bands Output" index="2">automatic</OPTION>
+          <OPTION type="text" id="SELECTION" name="Select from Multiple Bands"/>
+          <OPTION type="boolean" id="TRANSFORM" name="Transformation">TRUE</OPTION>
+          <OPTION type="choice" id="RESAMPLING" name="Resampling" index="0">Nearest Neighbour</OPTION>
+          <OUTPUT type="grid_list" id="GRIDS" name="Grids">elevacao</OUTPUT>
+        </TOOL>
+      </INPUT>
+      <OUTPUT type="grid" id="C_PROF" name="Profile Curvature">Profile Curvature</OUTPUT>
+    </TOOL>
+  </HISTORY>
+  <FILE></FILE>
+  <DESCRIPTION></DESCRIPTION>
+  <PROJECTION>
+    <OGC_WKT>PROJCS["WGS 84 / UTM zone 22S",GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433],AUTHORITY["EPSG","4326"]],PROJECTION["Transverse_Mercator"],PARAMETER["latitude_of_origin",0],PARAMETER["central_meridian",-51],PARAMETER["scale_factor",0.9996],PARAMETER["false_easting",500000],PARAMETER["false_northing",10000000],UNIT["metre",1,AUTHORITY["EPSG","9001"]],AUTHORITY["EPSG","32722"]]</OGC_WKT>
+    <PROJ4>+proj=utm +zone=22 +south +datum=WGS84 +units=m +no_defs </PROJ4>
+    <EPSG>-1</EPSG>
+  </PROJECTION>
+</SAGA_METADATA>

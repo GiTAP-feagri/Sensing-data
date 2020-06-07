@@ -1,0 +1,218 @@
+---
+title: "Derivação de atributos do terreno de um Modelo Digital de Elevação (MDE)"
+autor: Maiara Pusch
+output:
+  word_document: default
+  html_document: default
+---
+
+Começamos lendo os pacotes utilizados nos procedimentos. Caso o usuário ainda não tenho trabalhado com nenhum dos pacotes descritos é necessário fazer a instalação. A instalação é feita pelo argumento - install.packages("nome do pacote").
+
+```{r, include=F, warning=F}
+library(RSAGA)
+library(sp)
+library(raster)
+library(sf)
+library(rgdal)
+library(mapedit)
+library(googlesheets)
+```
+
+<p>Para utilizar o pacote RSAGA, é necessário ter instalado no computador o software Saga-GIS.</p>
+<p>A versão utilizada neste script é a 6.2.0, e pode ser baixada no link abaixo ↓ </p>
+<https://sourceforge.net/projects/saga-gis/files/SAGA%20-%206/SAGA%20-%206.2.0/>
+<p>Baixar o executável de acordo com as configurações do computador </p>
+<p>**saga-6.2.0_x64_setup.exe** → Para sistemas de 64 </p>
+<p>**saga-6.2.0_win32_setup.exe** → Para sistemas de 32 </p>
+
+* Iniciamos abrindo o arquivo de elevação, poligno e visualizando os arquivos.</p>
+<p>É importante conferir a projeção de ambos os arquivos e verificar se os mesmo se sobrepõem </p>
+ 
+```{r, fig.align="center", fig.cap="Fig 1. Poligono sobreposto ao MDE"}
+elevacao= raster("../data/AP_05703_FBS_F6740_RT1.dem.tif")
+crs(elevacao)
+
+poly= shapefile("../boundary/22S.shp")   
+crs(poly)
+
+plot(elevacao);grid()
+plot(poly, add=T)
+```
+
+Para facilitar os cálculos e diminuir o tempo de processamento de derivação de atributos primários e secundários do MDE, a imagem de elevação foi recortada.
+
+1° Recortamos a arquivo pela extensão do poligono da área.
+
+```{r,  fig.align="center", fig.cap="Fig 2. MDE recortado pela extensão do polygono da área"}
+dem_rec =raster::crop(elevacao, poly)
+plot(dem_rec);grid()
+plot(poly, add=T)
+```
+
+2° Aplicamos uma máscara de acordo com o contorno do poligno.
+
+```{r fig.align="center", fig.cap="Fig 3. MDE recortado pelo polygono da área"}
+dem.mask = mask(dem_rec, poly)
+plot(dem.mask)
+plot(poly, add=T);grid()
+```
+
+Salvamos o arquivo recortado para utilizar nos demais procedimentos.
+
+```{r}
+writeRaster(dem.mask, filename = "../atributos derivados/elevacao.tif",
+                  format = 'GTiff',
+                  overwrite = T)
+```
+
+Função para configurar o ambiente RSAGA. Cria uma lista com informações dependentes do sistema SAGA
+```{r message=FALSE, warning=FALSE}
+rsaga.env()
+```
+
+### Calcular índices topográficos derivados do terreno
+
+#####  Atributos morfométricos 
+<p>**Hillshade** - sombreamento  do relevo</p>
+<p>**Slope** - Declividade</p>
+<p>**General curvature** - Curvatura geral </p>
+<p>**Profile curvature** - Curvatura vertical</p>
+<p>**Plan curvature** - Curvatura Horizontal</p>
+<p>**Aspect** - Aspecto </p>
+
+#####  Atributos hidrológicos 
+<p>**Topographic wedness indice** - Índice topográfico de umidade</p>
+<p>**Stream power index** - Índice do poder de escoamento</p>
+<p>**Catchment area** - Área de captação</p>
+
+
+<p>Mais informações sobre saídas e tipos de arquivos ler documentação do pacote </p>
+<p> 1- <https://www.rdocumentation.org/packages/RSAGA/versions/1.3.0></p>
+<p> 2- <https://cran.r-project.org/web/packages/RSAGA/RSAGA.pdf></p>
+<p> 3- <https://cran.r-project.org/web/packages/RSAGA/vignettes/RSAGA.html></p>
+
+##### Cálculo do sombreamento da área
+
+```{r message=FALSE, warning=FALSE}
+rsaga.hillshade(in.dem = "../elevacao.tif",
+                out.grid = "../Atributos_derivados/hillshade.sgrd")
+```
+
+##### Cálculo da declividade; Curvatura geral ; Curvatura vertical; Curvatura Horizontal e aspecto
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+rsaga.slope.asp.curv(
+  in.dem = "../atributos derivados/elevacao.tif", 
+            out.slope = "../MDE/slope.sgrd", 
+            out.cgene =  "../MDE/curvatura_geral.sgrd",
+            out.cprof  = "../MDE/curvatura_vertical.sgrd",
+            out.cplan =  "../MDE/curvature_horizontal.sgrd",
+            unit.slope = "radians")
+
+rsaga.aspect(
+  in.dem = "../atributos derivados/elevacao.tif",
+  out.aspect = "../MDE/aspecto.sgrd",
+  method = "poly2zevenbergen")
+```
+
+##### Cálculo do índice topográfico de umidade  e área de captação
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+rsaga.wetness.index(
+  in.dem = "../atributos derivados/elevacao.tif",
+  out.wetness.index = "../MDE/twi.sgrd",
+  out.carea = "../MDE/catchment_area.sgrd",
+  area.type = "absolute"
+)
+```
+
+Visualização dos atributos derivados do MDE
+
+```{r, message=FALSE, warning=FALSE,fig.align="center", fig.cap="Fig 4. Elevacão (Elevation)"}
+elevacao= raster("../atributos derivados/elevacao.tif")
+plot(elevacao, main="Elevação")
+plot(poly, add=T)
+```
+
+```{r fig.align="center", fig.cap="Fig 5. Sombreamento do relevo (hillShade)"}
+hillShade= raster("../atributos derivados/hillshade.sdat")
+plot(hillShade, main="Sombreamento do relevo")
+plot(poly, add=T)
+```
+
+```{r fig.align="center", fig.cap="Fig 6.  Declividade (Slope)"}
+slope= raster("../MDE/slope.sdat")
+plot(slope, main="Declividade")
+plot(poly, add=T)
+```
+
+```{r fig.align="center", fig.cap="Fig 7. Curvatura Geral (General Curvature)"}
+curvatura_geral=raster("../MDE/curvatura_geral.sdat")
+plot(curvatura_geral, main="Curvatura Geral")
+plot(poly, add=T)
+```
+
+```{r fig.align="center", fig.cap="Fig 8. Curvatura Vertical (Profile Curvature)"}
+curvatura_vertical=raster("../MDE/curvatura_vertical.sdat")
+plot(curvatura_vertical, main="Curvatura Vertical")
+plot(poly, add=T)
+```
+
+```{r fig.align="center", fig.cap="Fig 9. Curvatura Horizontal (Plan Curvature)"}
+curvatura_horizontal=raster("../MDE/curvature_horizontal.sdat")
+plot(curvatura_horizontal, main="Curvatura Horizontal")
+plot(poly, add=T)
+```
+
+```{r fig.align="center", fig.cap="Fig 10.Aspecto (Aspect) com resolução 10m"}
+aspecto=raster("../MDE/aspecto.sdat")
+plot(aspecto, main="Aspecto")
+plot(poly, add=T)
+```
+
+```{r fig.align="center", fig.cap="Fig 11.Área de captação (Catchament area) "}
+area_de_captacao= raster("../MDE/catchment_area.sdat")
+plot(area_de_captacao, main="Área de captação")
+plot(poly, add=T)
+```
+
+```{r fig.align="center", fig.cap="Fig 12. Índice topográfico de umidade (Topographic Wetness Index-TWI)"}
+TWI= raster("../MDE/twi.sdat")
+plot(TWI, main="Índice topográfico de umidade")
+plot(poly, add=T)
+```
+
+Empilhei todos os rasters para facilitar  a etapa de salvar os arquivos
+
+```{r}
+variaveis = stack(elevacao,hillShade,slope,curvatura_geral,curvatura_vertical,curvatura_horizontal,aspecto,area_de_captacao,TWI)
+```
+
+##### Cálculo do SPI
+```{r}
+SPI= area_de_captacao * tan(slope)
+```
+
+```{r fig.align="center", fig.cap="Fig 13. (Índice de potência do fluxo (Stream Power index-SPI)  com resolução 10m"}
+plot(SPI, main="Índice de potência do fluxo")
+plot(poly, add=T)
+```
+
+Adicionar o raster de SPI com as demais variáveis
+
+```{r}
+variaveis = stack(variaveis, SPI)
+```
+
+Salvar os arquivos em formato tif
+
+```{r}
+writeRaster(variaveis,
+            filename = paste0("../atributos derivados/"),names(variaveis),
+            format= "GTiff",
+            bylayer=T,
+            overwrite=T)
+```
+
+
+                                                   THE END
