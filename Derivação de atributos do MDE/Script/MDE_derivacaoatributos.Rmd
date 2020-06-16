@@ -29,7 +29,7 @@ library(googlesheets)
 <p>É importante conferir a projeção de ambos os arquivos e verificar se os mesmo se sobrepõem </p>
  
 ```{r, fig.align="center", fig.cap="Fig 1. Poligono sobreposto ao MDE"}
-elevacao= raster("../data/AP_05703_FBS_F6740_RT1.dem.tif")
+elevacao= raster("../MDE/AP_05703_FBS_F6740_RT1.dem.tif")
 crs(elevacao)
 
 poly= shapefile("../boundary/22S.shp")   
@@ -94,8 +94,8 @@ rsaga.env()
 ##### Cálculo do sombreamento da área
 
 ```{r message=FALSE, warning=FALSE}
-rsaga.hillshade(in.dem = "../elevacao.tif",
-                out.grid = "../Atributos_derivados/hillshade.sgrd")
+rsaga.hillshade(in.dem = "../atributos derivados/elevacao.tif",
+                out.grid = "../atributos derivados/hillshade.sgrd")
 ```
 
 ##### Cálculo da declividade; Curvatura geral ; Curvatura vertical; Curvatura Horizontal e aspecto

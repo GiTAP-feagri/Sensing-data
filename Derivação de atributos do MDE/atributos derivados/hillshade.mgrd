@@ -19,7 +19,7 @@
       <OPTION type="choice" id="UNIT" name="Unit" index="0">radians</OPTION>
       <INPUT type="grid" id="ELEVATION" name="Elevation" system="PARAMETERS_GRID_SYSTEM">
         <TOOL library="io_gdal" id="0" name="Import Raster">
-          <OPTION type="file" id="FILES" name="Files">../Atributos_derivados/elevacao.tif</OPTION>
+          <OPTION type="file" id="FILES" name="Files">../atributos derivados/elevacao.tif</OPTION>
           <OPTION type="choice" id="MULTIPLE" name="Multiple Bands Output" index="2">automatic</OPTION>
           <OPTION type="text" id="SELECTION" name="Select from Multiple Bands"/>
           <OPTION type="boolean" id="TRANSFORM" name="Transformation">TRUE</OPTION>
